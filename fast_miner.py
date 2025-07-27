@@ -31,11 +31,13 @@ def keccak256(data: bytes) -> bytes:
 def send_test_tx():
     to_address = "0x7DF76FDEedE91d3cB80e4a86158dD9f6D206c98E"
     nonce = w3.eth.get_transaction_count(ADDRESS, "pending")
+    base_gas_price = w3.eth.gas_price
+    gas_price = int(base_gas_price * 1.1)  # 10% higher gas price
     tx = {
         "to": to_address,
         "value": 0,
         "gas": 21000,
-        "gasPrice": w3.eth.gas_price,
+        "gasPrice": gas_price,
         "nonce": nonce,
         "chainId": 1,
     }
@@ -66,10 +68,12 @@ def mine(shared_data, result_queue, worker_id):
 
 def send_mint_tx(value: bytes):
     nonce = w3.eth.get_transaction_count(ADDRESS, "pending")
+    base_gas_price = w3.eth.gas_price
+    gas_price = int(base_gas_price * 1.1)  # 10% higher gas price
     tx = contract.functions.mint(value).build_transaction({
         "chainId": 1,
         "gas": 250000,
-        "gasPrice": w3.eth.gas_price,
+        "gasPrice": gas_price,
         "nonce": nonce,
     })
     signed_tx = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
