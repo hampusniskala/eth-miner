@@ -1,7 +1,7 @@
-# fast_miner/miner.py
 import os
 import time
 import multiprocessing
+import threading
 import signal
 from web3 import Web3
 from Crypto.Hash import keccak
@@ -61,11 +61,31 @@ def send_mint_tx(value: bytes):
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
     print(f"[🚀] Mint TX sent: https://etherscan.io/tx/{tx_hash.hex()}")
 
+def listen_for_mint_event(shared_data):
+    print("[*] Starting Mint event listener...")
+    event_filter = contract.events.Mint.createFilter(fromBlock='latest')
+    while not stop_flag.is_set():
+        try:
+            for event in event_filter.get_new_entries():
+                print(f"[+] Mint event detected: {event}")
+                # Update shared data
+                shared_data["prev_hash"] = contract.functions.prev_hash().call()
+                shared_data["max_value"] = contract.functions.max_value().call()
+                print("[*] Updated prev_hash and max_value after Mint event.")
+            time.sleep(2)
+        except Exception as e:
+            print(f"[!] Error in Mint event listener: {e}")
+            time.sleep(5)
+
 def run_miner():
     manager = multiprocessing.Manager()
     shared_data = manager.dict()
     shared_data["prev_hash"] = contract.functions.prev_hash().call()
     shared_data["max_value"] = contract.functions.max_value().call()
+
+    # Start Mint event listener thread
+    listener_thread = threading.Thread(target=listen_for_mint_event, args=(shared_data,), daemon=True)
+    listener_thread.start()
 
     result_queue = multiprocessing.Queue()
     processes = []
@@ -82,6 +102,7 @@ def run_miner():
 
     for p in processes:
         p.terminate()
+    # Allow listener thread to keep running between mining loops
 
 def handle_sigterm(sig, frame):
     print("\n[!] Caught shutdown signal, exiting cleanly.")
