@@ -63,7 +63,7 @@ def send_mint_tx(value: bytes):
 
 def listen_for_mint_event(shared_data):
     print("[*] Starting Mint event listener...")
-    event_filter = contract.events.Mint.createFilter(fromBlock='latest')
+    event_filter = contract.events.Mint.create_filter(from_block='latest')
     while not stop_flag.is_set():
         try:
             for event in event_filter.get_new_entries():
