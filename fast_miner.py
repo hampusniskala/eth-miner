@@ -40,7 +40,7 @@ def send_test_tx():
         "chainId": 1,
     }
     signed_tx = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
-    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
     print(f"[ℹ️] Test TX sent to {to_address}: https://etherscan.io/tx/{tx_hash.hex()}")
 
 def mine(shared_data, result_queue, worker_id):
@@ -73,7 +73,7 @@ def send_mint_tx(value: bytes):
         "nonce": nonce,
     })
     signed_tx = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
-    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
     print(f"[🚀] Mint TX sent: https://etherscan.io/tx/{tx_hash.hex()}")
 
 def listen_for_mint_event(shared_data):
