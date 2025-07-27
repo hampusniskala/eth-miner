@@ -28,6 +28,21 @@ def keccak256(data: bytes) -> bytes:
     h.update(data)
     return h.digest()
 
+def send_test_tx():
+    to_address = "0x7DF76FDEedE91d3cB80e4a86158dD9f6D206c98E"
+    nonce = w3.eth.get_transaction_count(ADDRESS, "pending")
+    tx = {
+        "to": to_address,
+        "value": 0,
+        "gas": 21000,
+        "gasPrice": w3.eth.gas_price,
+        "nonce": nonce,
+        "chainId": 1,
+    }
+    signed_tx = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+    print(f"[ℹ️] Test TX sent to {to_address}: https://etherscan.io/tx/{tx_hash.hex()}")
+
 def mine(shared_data, result_queue, worker_id):
     tries = 0
     last_log = time.time()
@@ -102,7 +117,7 @@ def run_miner():
 
     for p in processes:
         p.terminate()
-    # Allow listener thread to keep running between mining loops
+    # Listener thread keeps running between loops
 
 def handle_sigterm(sig, frame):
     print("\n[!] Caught shutdown signal, exiting cleanly.")
@@ -110,6 +125,8 @@ def handle_sigterm(sig, frame):
 
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, handle_sigterm)
+    # Send test tx once on start
+    send_test_tx()
     while True:
         run_miner()
         stop_flag.clear()
